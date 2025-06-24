@@ -1,0 +1,140 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0A1218, #040509);
+  color: #F8F8F8;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 1rem;
+}
+
+.auth-container {
+  background-color: #040509;
+  color: #F8F8F8;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #8C6845;
+}
+
+.auth-title {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-title span {
+  color: #8C6845;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-input {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #8C6845;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #0A1218;
+  color: #F8F8F8;
+  transition: border-color 0.2s, background-color 0.3s;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #8C6845;
+  background-color: #0A1218;
+}
+
+.auth-button {
+  background-color: #8C6845;
+  color: #F8F8F8;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.auth-button:hover {
+  background-color: #A57B51;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #F8F8F8;
+}
+
+.auth-link a {
+  color: #8C6845;
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+  color: #A57B51;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+}
+
+.modal {
+  background: #040509;
+  color: #F8F8F8;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  margin: 10% auto;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid #8C6845;
+}
+
+.modal button {
+  margin-top: 1rem;
+  padding: 0.5rem 1.2rem;
+  background-color: #8C6845;
+  color: #F8F8F8;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.modal button:hover {
+  background-color: #A57B51;
+}
+
+/* Mobile Responsive */
+@media (max-width: 500px) {
+  .auth-container {
+    padding: 2rem 1rem;
+  }
+
+  .auth-title {
+    font-size: 1.6rem;
+  }
+
+  .auth-input {
+    font-size: 0.95rem;
+    padding: 0.65rem 0.9rem;
+  }
+
+  .auth-button {
+    font-size: 0.95rem;
+  }
+}

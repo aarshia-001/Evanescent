@@ -1,0 +1,82 @@
+.homepage-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  color: #F8F8F8;
+  overflow: hidden;
+}
+
+/* Background image with limited height */
+.homepage-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60vh; /* limit image height */
+  background-image: url("bottle_image.png");
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+/* Black overlay */
+.homepage-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60vh; /* same height as background image */
+  background: rgba(0, 0, 0, 0.6); /* black overlay with transparency */
+  z-index: 2;
+}
+
+/* Your content stays on top */
+.homepage-content {
+  position: relative;
+  z-index: 3;
+  transform: translateY(-10%);
+}
+
+.homepage-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -1px;
+}
+
+.homepage-title span {
+  color: #AC8865;
+}
+
+.homepage-description {
+  font-size: 1.25rem;
+  max-width: 600px;
+  line-height: 1.6;
+  color: #DCDCDC;
+}
+
+.get-started-button {
+  margin-top: 2.5rem;
+  background-color: #8C6845;
+  color: #F8F8F8;
+  padding: 0.75rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.get-started-button:hover {
+  background-color: #A57B51;
+}

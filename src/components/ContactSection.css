@@ -1,0 +1,29 @@
+.contact-section {
+  background-color: #0A1218;   /* Elegant dark navy */
+  color: #F8F8F8;
+  padding: 1rem 1rem;
+  text-align: center;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+  margin-top: auto;
+}
+
+.contact-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.contact-submitted {
+  font-size: 0.8rem;
+  color: #AAAAAA;
+}
+
+.contact-submitted span {
+  color: #F8F8F8;
+  font-weight: 500;
+}
