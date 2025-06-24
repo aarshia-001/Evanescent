@@ -20,7 +20,6 @@ const WriteUpsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [selectedWriteup, setSelectedWriteup] = useState<Writeup | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const myClaimsContainerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -41,7 +40,7 @@ const WriteUpsPage: React.FC = () => {
     fetchAllData();
   }, []);
 
-  const filtered = writeups.filter(w =>
+  const filteredMyClaims = myClaims.filter(w =>
     w.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -60,7 +59,7 @@ const WriteUpsPage: React.FC = () => {
         <input
           type="text"
           className="search-bar"
-          placeholder="Search bottles..."
+          placeholder="Search my claimed bottles..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
@@ -69,13 +68,13 @@ const WriteUpsPage: React.FC = () => {
       {/* My Claimed Bottles */}
       <section className="articles-section">
         <h2 className="section-title">My Claimed Bottles</h2>
-        {myClaims.length === 0 ? (
+        {filteredMyClaims.length === 0 ? (
           <p className="no-writeups-msg">No Claimed Bottles Found...</p>
         ) : (
           <div className="scroll-wrapper">
             <button className="scroll-button left" onClick={() => scroll(-400, myClaimsContainerRef)}>◀</button>
             <div className="articles-container" ref={myClaimsContainerRef}>
-              {myClaims.map(w => (
+              {filteredMyClaims.map(w => (
                 <div key={w.id} className="article-card">
                   <h3>{w.title}</h3>
                   <p className="meta">By {w.author_name}</p>
@@ -144,6 +143,7 @@ const WriteUpEditor: React.FC<WriteUpEditorProps> = ({ onClose }) => {
     </div>
   );
 };
+
 interface WriteUpModalProps {
   writeup: Writeup;
   onClose: () => void;
