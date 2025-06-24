@@ -15,7 +15,6 @@ interface Writeup {
 }
 
 const WriteUpsPage: React.FC = () => {
-  const [writeups, setWriteups] = useState<Writeup[]>([]);
   const [myClaims, setMyClaims] = useState<Writeup[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showEditor, setShowEditor] = useState(false);
@@ -25,11 +24,7 @@ const WriteUpsPage: React.FC = () => {
 
   const fetchAllData = async () => {
     try {
-      const [writeupsRes, claimsRes] = await Promise.all([
-        api.get('/api/writeups'),
-        api.get('/api/writeups/myclaims')
-      ]);
-      setWriteups(writeupsRes.data);
+      const claimsRes = await api.get('/api/writeups/myclaims');
       setMyClaims(claimsRes.data);
     } catch (err) {
       console.error(err);
@@ -44,7 +39,7 @@ const WriteUpsPage: React.FC = () => {
     w.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const scroll = (offset: number, ref: React.RefObject<HTMLDivElement>) => {
+  const scroll = (offset: number, ref: React.RefObject<HTMLDivElement | null>) => {
     ref.current?.scrollBy({ left: offset, behavior: 'smooth' });
   };
 
