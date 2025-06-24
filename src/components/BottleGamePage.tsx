@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { Water } from "three/examples/jsm/objects/Water";
-import { Sky } from "three/examples/jsm/objects/Sky";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { Water } from "three/examples/jsm/objects/Water.js";
+import { Sky } from "three/examples/jsm/objects/Sky.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import api from './api';  // your axios instance
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const CHUNK_SIZE = 250;
 const BOTTLES_PER_CHUNK = 2;
-const STATUE_DENSITY = 1; // 1 statue per chunk for simplicity
+const STATUE_DENSITY = 1;
 const MAX_RENDER_DISTANCE = 1000;
 
 interface BottleData {
@@ -31,7 +31,7 @@ const BottleGamePage = () => {
   const [writeupContent, setWriteupContent] = useState<string | null>(null);
   const [loadingWriteup, setLoadingWriteup] = useState<boolean>(false);
   const [writeupError, setWriteupError] = useState<string | null>(null);
-  let bottleCounter = useRef<number>(1);
+  const bottleCounter = useRef<number>(1);
 
   useEffect(() => {
     const scene = new THREE.Scene();
@@ -69,7 +69,8 @@ const BottleGamePage = () => {
     const sky = new Sky();
     sky.scale.setScalar(10000);
     scene.add(sky);
-    const skyUniforms = (sky.material).uniforms;
+
+    const skyUniforms = (sky.material as THREE.ShaderMaterial).uniforms;
     skyUniforms["turbidity"].value = 1;
     skyUniforms["rayleigh"].value = 3;
     skyUniforms["mieCoefficient"].value = 0.045;
@@ -78,14 +79,28 @@ const BottleGamePage = () => {
     const sun = new THREE.Vector3();
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     const parameters = { elevation: 15, azimuth: 180 };
+
     const updateSun = () => {
       const phi = THREE.MathUtils.degToRad(90 - parameters.elevation);
       const theta = THREE.MathUtils.degToRad(parameters.azimuth);
       sun.setFromSphericalCoords(1, phi, theta);
       sky.material.uniforms["sunPosition"].value.copy(sun);
       water.material.uniforms["sunDirection"].value.copy(sun).normalize();
-      scene.environment = pmremGenerator.fromScene(sky).texture;
+
+      // ✅ Use a separate Sky instance just for the environment map generation
+      const envSky = new Sky();
+      envSky.scale.setScalar(10000);
+      (envSky.material as THREE.ShaderMaterial).uniforms["turbidity"].value = skyUniforms["turbidity"].value;
+      (envSky.material as THREE.ShaderMaterial).uniforms["rayleigh"].value = skyUniforms["rayleigh"].value;
+      (envSky.material as THREE.ShaderMaterial).uniforms["mieCoefficient"].value = skyUniforms["mieCoefficient"].value;
+      (envSky.material as THREE.ShaderMaterial).uniforms["mieDirectionalG"].value = skyUniforms["mieDirectionalG"].value;
+      (envSky.material as THREE.ShaderMaterial).uniforms["sunPosition"].value.copy(sun);
+
+      const tmpScene = new THREE.Scene();
+      tmpScene.add(envSky);
+      scene.environment = pmremGenerator.fromScene(tmpScene).texture;
     };
+
     updateSun();
 
     scene.fog = new THREE.FogExp2(0xffffff, 0.002);
@@ -115,15 +130,14 @@ const BottleGamePage = () => {
       statue1Template = gltf.scene;
     });
 
-    loader.load("/models/creepy_statue_2.glb", (gltf) => {  
+    loader.load("/models/creepy_statue_2.glb", (gltf) => {
       statue2Template = gltf.scene;
     });
 
-    // static models
     loader.load("/models/dome.glb", (gltf) => {
       const dome = gltf.scene;
       dome.position.set(0, -1.5, 0);
-      dome.rotation.set(0, 90, 0);
+      dome.rotation.set(0, Math.PI / 2, 0);
       dome.scale.set(4, 4, 4);
       scene.add(dome);
     });
@@ -131,7 +145,7 @@ const BottleGamePage = () => {
     loader.load("/models/Pillars.glb", (gltf) => {
       const pillars = gltf.scene;
       pillars.position.set(1250, -1.5, 1250);
-      pillars.rotation.set(0, 90, 0);
+      pillars.rotation.set(0, Math.PI / 2, 0);
       pillars.scale.set(7, 7, 7);
       scene.add(pillars);
     });
@@ -139,7 +153,7 @@ const BottleGamePage = () => {
     loader.load("/models/NigeshBot.glb", (gltf) => {
       const bot = gltf.scene;
       bot.position.set(1250, 0, 1250);
-      bot.rotation.set(0, 90, 0);
+      bot.rotation.set(0, Math.PI / 2, 0);
       bot.scale.set(2, 2, 2);
       scene.add(bot);
     });
@@ -173,7 +187,7 @@ const BottleGamePage = () => {
         bottle.rotation.y = Math.random() * Math.PI * 2;
         const globalBottleNumber = bottleCounter.current++;
         const id = `Bottle ${globalBottleNumber}`;
-        bottle.userData.id = id;
+        (bottle as any).userData.id = id;
         scene.add(bottle);
         bottles.push({ id, object: bottle });
       }
@@ -194,11 +208,13 @@ const BottleGamePage = () => {
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
       moveBoat();
+
       const time = performance.now() * 0.001;
       if (boat) {
         boat.position.y = 0.75 + Math.sin(time * 1.5) * 0.25;
         boat.rotation.z = Math.sin(time * 0.8) * 0.05;
         boat.rotation.x = Math.sin(time * 0.6) * 0.05;
+
         const cameraDistance = 25;
         const cameraHeight = 5;
         const cameraOffset = new THREE.Vector3(0, cameraHeight, cameraDistance);
@@ -216,23 +232,24 @@ const BottleGamePage = () => {
         }
 
         const visibleBottles = bottles.filter(({ object }) => {
-          const dist = boat.position.distanceTo(object.position);
+          const dist = boat!.position.distanceTo(object.position);
           object.visible = dist < MAX_RENDER_DISTANCE;
           return dist < 100;
         });
 
         statues.forEach(({ object }) => {
-          const dist = boat.position.distanceTo(object.position);
+          const dist = boat!.position.distanceTo(object.position);
           object.visible = dist < MAX_RENDER_DISTANCE;
         });
 
-        const ids = visibleBottles.map(b => b.id);
+        const ids = visibleBottles.map((b) => b.id);
         if (JSON.stringify(ids) !== JSON.stringify(foundBottlesRef.current)) {
           setFoundBottles(ids);
           foundBottlesRef.current = ids;
         }
       }
-      water.material.uniforms["time"].value += 1.0 / 60.0;
+
+      (water.material as THREE.ShaderMaterial).uniforms["time"].value += 1.0 / 60.0;
       renderer.render(scene, camera);
     };
 
@@ -243,8 +260,8 @@ const BottleGamePage = () => {
       }
     }, 100);
 
-    window.addEventListener("keydown", (e) => keysPressed[e.key.toLowerCase()] = true);
-    window.addEventListener("keyup", (e) => keysPressed[e.key.toLowerCase()] = false);
+    window.addEventListener("keydown", (e) => (keysPressed[e.key.toLowerCase()] = true));
+    window.addEventListener("keyup", (e) => (keysPressed[e.key.toLowerCase()] = false));
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -259,36 +276,35 @@ const BottleGamePage = () => {
   }, []);
 
   function extractBottleNumber(input: string): number {
-    return parseInt(input.replace('Bottle ', ''));
+    return parseInt(input.replace("Bottle ", ""));
   }
 
-useEffect(() => {
-  if (!selectedBottle) return;
+  useEffect(() => {
+    if (!selectedBottle) return;
 
-  const claimBottle = async () => {
-    setLoadingWriteup(true);
-    setWriteupError(null);
-    setWriteupContent(null);
+    const claimBottle = async () => {
+      setLoadingWriteup(true);
+      setWriteupError(null);
+      setWriteupContent(null);
 
-    try {
-      const writeupId = extractBottleNumber(selectedBottle);
-      await api.post(`/api/writeups/claim/${writeupId}`);
-
-      setWriteupContent("Bottle claimed successfully.");
-    } catch (err: any) {
-      console.error(err);
-      if (err.response?.data?.error) {
-        setWriteupError(err.response.data.error);
-      } else {
-        setWriteupError("Something went wrong.");
+      try {
+        const writeupId = extractBottleNumber(selectedBottle);
+        await api.post(`/api/writeups/claim/${writeupId}`);
+        setWriteupContent("Bottle claimed successfully.");
+      } catch (err: any) {
+        console.error(err);
+        if (err.response?.data?.error) {
+          setWriteupError(err.response.data.error);
+        } else {
+          setWriteupError("Something went wrong.");
+        }
+      } finally {
+        setLoadingWriteup(false);
       }
-    } finally {
-      setLoadingWriteup(false);
-    }
-  };
+    };
 
-  claimBottle();
-}, [selectedBottle]);
+    claimBottle();
+  }, [selectedBottle]);
 
   return (
     <div ref={mountRef} style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
@@ -296,8 +312,18 @@ useEffect(() => {
         <h4 style={{ color: "#fff" }}>Claim Bottle</h4>
         <div style={{ display: "flex", overflowX: "auto", gap: "8px" }}>
           {foundBottles.map((bottleId) => (
-            <button key={bottleId} onClick={() => setSelectedBottle(bottleId)}
-              style={{ background: "#8C6845", color: "#000", padding: "5px 10px", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+            <button
+              key={bottleId}
+              onClick={() => setSelectedBottle(bottleId)}
+              style={{
+                background: "#8C6845",
+                color: "#000",
+                padding: "5px 10px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
               {bottleId}
             </button>
           ))}
@@ -305,15 +331,47 @@ useEffect(() => {
       </div>
 
       {selectedBottle && (
-        <div style={{ position: "absolute", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20 }}
-          onClick={() => setSelectedBottle(null)}>
-          <div style={{ background: "#040509", padding: "20px", borderRadius: "8px", maxWidth: "400px", textAlign: "left" }}
-            onClick={(e) => e.stopPropagation()}>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 20,
+          }}
+          onClick={() => setSelectedBottle(null)}
+        >
+          <div
+            style={{
+              background: "#040509",
+              padding: "20px",
+              borderRadius: "8px",
+              maxWidth: "400px",
+              textAlign: "left",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3>{selectedBottle}</h3>
             {loadingWriteup && <p>Loading...</p>}
             {writeupError && <p style={{ color: "red" }}>{writeupError}</p>}
             {writeupContent && <p>{writeupContent}</p>}
-            <button onClick={() => setSelectedBottle(null)} style={{ marginTop: "10px", background: "#0A1218", color: "#8C6845", padding: "8px 12px", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+            <button
+              onClick={() => setSelectedBottle(null)}
+              style={{
+                marginTop: "10px",
+                background: "#0A1218",
+                color: "#8C6845",
+                padding: "8px 12px",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+              }}
+            >
               Close
             </button>
           </div>
