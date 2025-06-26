@@ -1,28 +1,22 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import api from '../components/api'; // adjust path if needed
 
 export const signup = async (name: string, email: string, password: string) => {
   try {
-    const response = await fetch(`${API_URL}/api/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+    const response = await api.post('/api/signup', {
+      name,
+      email,
+      password,
     });
 
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error("Invalid response from server.");
-    }
-
-    if (!response.ok) {
-      const message = data?.error || "Signup failed. Please try again.";
-      throw new Error(message);
-    }
-
-    return data;
+    return response.data;
   } catch (err: any) {
     console.error("Signup error:", err);
-    throw new Error(err.message || "Something went wrong during signup.");
+
+    const message =
+      err?.response?.data?.error ||
+      err?.message ||
+      "Signup failed. Please try again.";
+
+    throw new Error(message);
   }
 };
