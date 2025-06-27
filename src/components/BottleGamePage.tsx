@@ -144,7 +144,7 @@ const BottleGamePage = () => {
 
     loader.load("/models/Pillars.glb", (gltf) => {
       const pillars = gltf.scene;
-      pillars.position.set(200, -1.5, 250);
+      pillars.position.set(0, -1.5, -20);
       pillars.rotation.set(0, Math.PI / 2, 0);
       pillars.scale.set(7, 7, 7);
       scene.add(pillars);
@@ -152,7 +152,7 @@ const BottleGamePage = () => {
 
     loader.load("/models/NigeshBot.glb", (gltf) => {
       const bot = gltf.scene;
-      bot.position.set(200, 0, 250);
+      bot.position.set(0, 0.2, -20);
       bot.rotation.set(0, Math.PI / 2, 0);
       bot.scale.set(2, 2, 2);
       scene.add(bot);
